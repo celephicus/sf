@@ -1,0 +1,5 @@
+
+log xx -Cred -D5 -n500
+rescale -f555
+parastichy xx -p8 -p13 -W5 -Cteal
+mesh P8 P13 -n4 -Cred -W1

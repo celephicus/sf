@@ -1,0 +1,5 @@
+# SF2 Startup script.
+
+# Make a reference layer with a circle on the origin.
+attr Reference --colour=yellow --width=0.5
+circle Reference --diameter=5
