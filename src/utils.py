@@ -1,10 +1,27 @@
 #!/usr/bin/env python3
 
-import sys, re, pprint, math, functools, argparse
+import sys, re, pprint, math, functools, argparse, fnmatch
 from typing import Callable, Any, Tuple, List
 
 from PIL import ImageColor
 from shapely.geometry import Polygon
+
+
+def expand_items(items:tuple[str], spec:list[str]) -> tuple[list[str], list[str]]:
+	"""Given a tuple of items, take a spec consisting of strings, each may either be an item in the items or a regex
+	matching multiple items, and output a list of matches in the items tuple, and a list of specs that did not
+	result in one or more matches.
+	The found results are in the same order as the items."""
+	found, not_found = set(), []
+	for ss in spec:
+		f_found = False
+		for it in items:
+			if fnmatch.fnmatchcase(it.lower(), ss.lower()):
+				f_found = True
+				found.add(it)
+		if not f_found and 0 == sum([x in ss for x in "[]*?"]):
+			not_found.append(ss)
+	return [x for x in items if x in found], not_found
 
 '''Validators for use with cmd2 should act like simple types, so that have a value set by being called, then
 cmd2 will give an error message that makes sense.'''

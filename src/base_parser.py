@@ -27,7 +27,7 @@ del _NOTSET
 
 # Base parser for all utility commands. it just takes a number of layers as positional arguments.
 MULTI_INPUT_LAYERS_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
-MULTI_INPUT_LAYERS_PARSER.add_argument("layers", type=utils.layer_type, nargs='*',
+MULTI_INPUT_LAYERS_PARSER.add_argument("layers", type=str, nargs='*',
 	help="Multiple layers with data to process, or blank for all.")
 
 # Base parser with generic layer attributes.

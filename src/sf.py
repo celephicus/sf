@@ -154,17 +154,13 @@ Type "?" for help.
 
 	def _update_layer_list(self, ns:argparse.Namespace, action_nonexistent:str|None=None) -> None:
 		"""Update a list of layers from a user spec that removes duplicates and nonexistent layers and sorts the layers in
-		the order that they are in the user data."""
-		#TODO: Normalise case of layer names & allow wildcards.
+		the order that they are in the user data. Also expands wildcards with glob syntax."""
+		#TODO: Normalise case of layer names.
 		if not ns.layers:                                 # If not given get them all, these will be in the correct order.
 			ns.layers = self.dd.ALL_LAYERS
 		else:
 			self.pdebug(f"Raw layers: {ns.layers!r}")
-			raw_layers = sum(map(str.split, ns.layers), [])  # Items in the layers arg may have spaces if they have been quoted.
-			raw_layers = [x for x in raw_layers if x.strip()]        # Only want strings with non-blanks.
-			l_known, l_unknown = [], []
-			for l in raw_layers:
-				(l_known if l in self.dd.ALL_LAYERS else l_unknown).append(l)
+			l_known, l_unknown = utils.expand_items(self.dd.ALL_LAYERS, ns.layers)
 			if not action_nonexistent or action_nonexistent == 'warn':
 				self.warn_if_verbose(f"Unknown layers {','.join(l_unknown)} ignored.")
 				ns.layers = l_known
