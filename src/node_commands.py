@@ -9,7 +9,7 @@ import cmd2
 from python_tsp.distances import euclidean_distance_matrix
 from python_tsp.heuristics import solve_tsp_local_search, solve_tsp_simulated_annealing
 
-import utils, base_parser, sf2_common
+import utils, base_parser, sf_common
 from layer_set import LayerSet
 
 @cmd2.with_default_category('Node Commands')
@@ -42,6 +42,7 @@ class NodeCommands(cmd2.CommandSet):
 		help="Position of circle centre, defaults to origin; third value may be diameter, overrides --diameter option.")
 
 	@cmd2.with_argparser(node_circle_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_circle(self, ns:argparse.Namespace):
 		self._cmd.dump_args_option(ns, "Raw args")
 		self.add_diameter_from_arg(ns.diameter, ns.pos)
@@ -63,13 +64,9 @@ class NodeCommands(cmd2.CommandSet):
 	node_ring_parser_eg.add_argument("--radius", "-r", type=utils.arg_non_negative_float,
 		help=f"Set radius to value given.")
 	@cmd2.with_argparser(node_ring_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_ring(self, ns:argparse.Namespace):
 		self._cmd.dump_args_option(ns)
-
-		# Get max radius for existing nodes.
-		# TODO: extend to other data?
-		existimg_nodes = self.dd.get(ns.output_layer).widget("nodes").items
-		max_r = utils.largest_radius(existimg_nodes)
 
 		# Fix count if not given.
 		if not ns.count:                                                          # If seed count zero or default choose one.
@@ -78,7 +75,12 @@ class NodeCommands(cmd2.CommandSet):
 
 		# Fix ring radius.
 		if not ns.radius:                               # If radius not set add offset to largest radius if existing nodes.
-			ns.radius = max_r + ns.offset
+
+			existing_nodes = self._cmd.get_data(ns.output_layer, "nodes", no_warn=True) 	# TODO: extend to other data?
+			if not existing_nodes:
+				self.perror("No nodes found on target layer.")
+				return
+			ns.radius = utils.largest_radius(existing_nodes) + ns.offset
 
 		self._cmd.dump_args_option(ns, "Fixed args")
 		ring_nodes = [[ns.radius, x/ns.count * 2.0*math.pi] for x in range(ns.count)]
@@ -94,7 +96,7 @@ class NodeCommands(cmd2.CommandSet):
 		help="number of nodes")
 	spiral_generator_parser.add_argument("--start-index", "-i", type=utils.arg_non_negative_int, default=1,
 		help="node index to start with")
-	spiral_generator_parser.add_argument("--divergence-angle", "-d", type=float, default=360.0/sf2_common.PHI_2,
+	spiral_generator_parser.add_argument("--divergence-angle", "-d", type=float, default=360.0/sf_common.PHI_2,
 		help="angle between successive nodes in degrees, no argument is approx. 137.5°, the Golden Angle.")
 	spiral_generator_parser.add_argument("--twist", "-t", type=float, default=1.0,
 		help="twist factor, controls how many rotations in spiral, ignored for Archimedean.")
@@ -135,6 +137,7 @@ class NodeCommands(cmd2.CommandSet):
 		description="""Generate a logarithmic spiral where the radius increases exponentially.
 		Note diameter option sets diameter of each node, not the diameter attribute of the layer.""")
 	@cmd2.with_argparser(spiral_log_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_log(self, ns:argparse.Namespace):
 		self._spiral_generator(ns, self._spiral_log, "log")
 
@@ -144,6 +147,7 @@ class NodeCommands(cmd2.CommandSet):
 		description="""Generate an archimedean spiral where the radius increases linearly.
 		Note diameter option sets diameter of each node, not the diameter attribute of the layer.""")
 	@cmd2.with_argparser(spiral_archimedean_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_archimedean(self, ns:argparse.Namespace):
 		self._spiral_generator(ns, self._spiral_archimedean, "archimedean")
 
@@ -153,6 +157,7 @@ class NodeCommands(cmd2.CommandSet):
 		description="""Generate a Fermat spiral where the radius increases with the square root of the index.
 		Note diameter option sets diameter of each node, not the diameter attribute of the layer.""")
 	@cmd2.with_argparser(spiral_sunflower_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_sunflower(self, ns:argparse.Namespace):
 		self._spiral_generator(ns, self._spiral_sunflower, "sunflower")
 
@@ -170,6 +175,7 @@ class NodeCommands(cmd2.CommandSet):
 		help="Generate LED map for WLED, if value given then split into strings of this size.")
 
 	@cmd2.with_argparser(wiring_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_wiring(self, ns):
 		self._cmd._update_output_layer(ns, "wiring")
 		self._cmd.dump_args_option(ns)

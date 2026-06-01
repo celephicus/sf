@@ -11,14 +11,14 @@ PHI_2 = PHI*PHI
 
 # Attribute types
 ATTRIBUTES = (
-	layer_set.Attribute("background",	str, 		"white", 	"Background colour for plot, ignored in layers."),
-	layer_set.Attribute("diameter", 	float, 	1.0, 			"Diameter of circles centred around Nodes."),
-	layer_set.Attribute("fill", 			str, 		None, 		"Fill colour for Cells (polygons) only."),
-	layer_set.Attribute("colour", 		str, 		"white",	"Line colour for all Widgets."),
-	layer_set.Attribute("width", 			float, 	0.50,			"Line width in mm for all Widgets."),
-	layer_set.Attribute("align", 			str, 		"centre-middle",
-																											"Text alignment, [left centre right]-[top middle bottom]."),
-	layer_set.Attribute("height", 		float, 	3.0, 			"Text height in mm"),
+	layer_set.Attribute("background",	str, 									"white", 	"Background colour for plot, ignored in layers."),
+	layer_set.Attribute("diameter", 	float, 								1.0, 			"Diameter of circles centred around Nodes."),
+	layer_set.Attribute("fill", 			str, 									None, 		"Fill colour for Cells (polygons) only."),
+	layer_set.Attribute("colour", 		str, 									"white",	"Line colour for all Widgets."),
+	layer_set.Attribute("width", 			float, 								0.50,			"Line width in mm for all Widgets."),
+	layer_set.Attribute("align", 			utils.TextAlignment,	utils.TextAlignment.DEFAULT,
+																																		"Text alignment, [left centre right]-[top middle bottom]."),
+	layer_set.Attribute("height", 		float, 								3.0, 			"Text height in mm"),
 )
 ATTRIBUTE_NAMES = tuple([a.name for a in ATTRIBUTES])
 

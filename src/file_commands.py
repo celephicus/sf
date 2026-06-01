@@ -6,7 +6,7 @@ import json
 import tomli_w
 import cmd2
 
-import utils, base_parser, sf2_common
+import utils, base_parser, sf_common
 from layer_set import LayerSet
 
 @cmd2.with_default_category('File Commands')
@@ -38,12 +38,11 @@ class FileCommands(cmd2.CommandSet):
 		description="Export a set of layers.")
 	import_export_parser.add_argument("--format", "-F", choices=EXPORT_FORMATS,
 		help='output format')
-	import_export_parser.add_argument("--file", "-f", type=Path, default=sf2_common.APPNAME,
+	import_export_parser.add_argument("--file", "-f", type=Path, default=sf_common.APPNAME,
 		help='output filename')
-	import_export_parser.add_argument("--data", "-D", choices=sf2_common.WIDGET_NAMES, nargs='*',
+	import_export_parser.add_argument("--data", "-D", choices=sf_common.WIDGET_NAMES, nargs='*',
 		help='data items to export')
 
-	@utils.exclude_from_undo()
 	@cmd2.with_argparser(import_export_parser)
 	def do_export(self, ns:argparse.Namespace):
 		self._cmd._update_layer_list(ns, action_nonexistent="warn")
@@ -58,7 +57,7 @@ class FileCommands(cmd2.CommandSet):
 			self._cmd.warn_if_verbose(f"Data item specifiers ignored for format {ns.format}.")
 		dd_for_export = {}
 		for ll in ns.layers:
-			dd_for_export[ll] = {w_name: self._cmd.dd.get(ll).widget(w_name).items for w_name in sf2_common.WIDGET_NAMES}
+			dd_for_export[ll] = {w_name: self._cmd.dd.get(ll).widget(w_name).items for w_name in sf_common.WIDGET_NAMES}
 		return dd_for_export
 
 	def _export_json(self, ns:argparse.Namespace):
@@ -116,7 +115,6 @@ class FileCommands(cmd2.CommandSet):
 	plot_parser.add_argument("--file", "-f", type=Path,
 		help='output filename')
 
-	@utils.exclude_from_undo()
 	@cmd2.with_argparser(plot_parser)
 	def do_plot(self, ns:argparse.Namespace):
 		self._cmd._update_layer_list(ns, action_nonexistent="warn")

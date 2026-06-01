@@ -157,8 +157,8 @@ class TextAlignment:
 		self.h, self.v = h, v
 	def __str__(self):
 		return f"{self.h}-{self.v}"
-	align_h = property(get=lambda self: self.h, doc="Return horizontal alignment")
-	align_v = property(get=lambda self: self.v, doc="Return vertical alignment")
+	align_h = property(fget=lambda self: self.h, doc="Return horizontal alignment")
+	align_v = property(fget=lambda self: self.v, doc="Return vertical alignment")
 
 #
 #

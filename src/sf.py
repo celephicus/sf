@@ -70,7 +70,7 @@ Type "?" for help.
 
 	def add_to_undo(self, cmd:str):
 		func = getattr(self, 'do_'+cmd.split()[0], None)
-		if func and not getattr(func, "no_undo", None):
+		if func and getattr(func, "allow-undo", None):
 			self.undo.append((cmd, copy.deepcopy(self.dd)))
 		#print([x[0] for x in self.undo])
 
@@ -185,7 +185,6 @@ Type "?" for help.
 	dump_parser.add_argument("--summary", "-s", action='store_true',
 		help='print summary only')
 
-	@utils.exclude_from_undo()
 	@cmd2.with_category(COMMANDS_UTILITY)
 	@cmd2.with_argparser(dump_parser)
 	def do_dump(self, ns:argparse.Namespace):
@@ -197,7 +196,6 @@ Type "?" for help.
 	# Undo & redo commands.
 	#
 
-	@utils.exclude_from_undo()
 	@cmd2.with_category(COMMANDS_UTILITY)
 	def do_undo(self, ns:argparse.Namespace):
 		if self.undo:
@@ -209,7 +207,6 @@ Type "?" for help.
 		else:
 			self.perror("No items to undo.")
 
-	@utils.exclude_from_undo()
 	@cmd2.with_category(COMMANDS_UTILITY)
 	def do_redo(self, ns:argparse.Namespace):
 		if self.redo:
@@ -221,7 +218,6 @@ Type "?" for help.
 		else:
 			self.perror("No items to redo.")
 
-	@utils.exclude_from_undo()
 	@cmd2.with_category(COMMANDS_UTILITY)
 	def do_history(self, ns:argparse.Namespace):
 		self.poutput("Undo buffer:")
@@ -236,6 +232,7 @@ Type "?" for help.
 		description="Delete or modify/set attributes for a set of layers.")
 	attr_parser.add_argument("--default", "-d", action='store_true',
 		help="Add attributes used as defaults if not set in layer.")
+	@utils.add_func_attr("allow-undo")
 	@cmd2.with_category(COMMANDS_UTILITY)
 	@cmd2.with_argparser(attr_parser)
 	def do_attr(self, ns:argparse.Namespace):
@@ -281,6 +278,7 @@ Type "?" for help.
 
 	@cmd2.with_category(COMMANDS_UTILITY)
 	@cmd2.with_argparser(layer_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_layer(self, ns:argparse.Namespace):
 		layer_error = self._update_layer_list(ns, action_nonexistent="error")
 		self.dump_args_option(ns)
@@ -349,6 +347,7 @@ Type "?" for help.
 		help='border, either in mm or as a percentage of the extents')
 	@cmd2.with_category(COMMANDS_UTILITY)
 	@cmd2.with_argparser(rescale_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_rescale(self, ns:argparse.Namespace):
 		self._update_layer_list(ns)
 		self.dump_args_option(ns)

@@ -424,10 +424,10 @@ class LayerSet:
 			["colour", "stroke",            lambda c: utils.Colour(c).html()],
 			["width",  "stroke-width",      lambda x: x],		# Let X... equal... X...
 			["height", "font_size",         lambda x: x],
-			["align",  "text_anchor",       lambda x: H_ALIGN[utils.get_text_align_h(x)]],
+			["align",  "text_anchor",       lambda x: H_ALIGN[x.align_h]],
 		]
 		if use_dominant_baseline:       # This attribute is only supported by browsers & Inkscape.
-			ATTRIBUTE_MAP.append(["align",  "dominant_baseline",  lambda x: V_ALIGN[utils.get_text_align_v(x)]])
+			ATTRIBUTE_MAP.append(["align",  "dominant_baseline",  lambda x: V_ALIGN[x.align_v]])
 
 		for layer in [self.get(l) for l in layer_names]:
 			# SVG has groups to set common attributes and collect objects. So we sort out attributes first.
@@ -435,7 +435,7 @@ class LayerSet:
 			if use_dominant_baseline:
 				v_align_offset = 0.0
 			else:
-				v_align_offset = V_ALIGN_OFFSET[utils.get_text_align_v(layer.get_attr("align"))] * layer.get_attr("height")
+				v_align_offset = V_ALIGN_OFFSET[layer.get_attr("align").align_v] * layer.get_attr("height")
 			#print(f"v_align={v_align_offset}")
 			layer_attrs = {no: conv(layer.get_attr(ni)) for ni, no, conv in ATTRIBUTE_MAP}
 			layer_attrs["font-family"] = "Roboto"

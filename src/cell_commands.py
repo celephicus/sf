@@ -5,7 +5,7 @@ from pathlib import Path
 import cmd2
 import networkx as nx			# Abstract network operations
 
-import utils, base_parser, sf2_common
+import utils, base_parser, sf_common
 
 from scipy.spatial import Voronoi
 from shapely.geometry import Polygon
@@ -46,6 +46,7 @@ class LineCellCommands(cmd2.CommandSet):
 		help='parastichy number, either a positive integer of the zero based index of a Fibonacci number.')
 
 	@cmd2.with_argparser(parastichy_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_parastichy(self, ns:argparse.Namespace):
 		ns.parastichy = list(set(ns.parastichy))			# Get rid of duplicates.
 		nodes = self._cmd.dd.get(ns.layer).widget("nodes").items
@@ -72,6 +73,7 @@ class LineCellCommands(cmd2.CommandSet):
 		description="Generate Voronoi regions from a set of nodes.")
 
 	@cmd2.with_argparser(voronoi_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_voronoi(self, ns:argparse.Namespace):
 		self._cmd._update_output_layer(ns, "voronoi")
 		self._cmd.dump_args_option(ns)
@@ -96,6 +98,7 @@ class LineCellCommands(cmd2.CommandSet):
 		help="Dump graph as lines of form <node> <neighbours>.")
 
 	@cmd2.with_argparser(mesh_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_mesh(self, ns:argparse.Namespace):
 		self._cmd._update_output_layer(ns, "mesh")
 		if ns.n_sides < 3:
@@ -192,6 +195,7 @@ class LineCellCommands(cmd2.CommandSet):
 		help="Processor parameter, meaning depends on algorithm.")
 
 	@cmd2.with_argparser(cellproc_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_cellproc(self, ns:argparse.Namespace):
 		# TODO: If more than one command rewrites data on a layer make a function.
 		if not ns.output_layer:
@@ -219,6 +223,7 @@ class LineCellCommands(cmd2.CommandSet):
 		help="smoothing applied to border, range 0..100")
 
 	@cmd2.with_argparser(outline_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_outline(self, ns:argparse.Namespace):
 		self._cmd._update_output_layer(ns, "outline")
 		self._cmd.dump_args_option(ns)
@@ -236,6 +241,7 @@ class LineCellCommands(cmd2.CommandSet):
 		description=f"Generate centroids for the cells on a single layer.")
 
 	@cmd2.with_argparser(centroid_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_centroid(self, ns:argparse.Namespace):
 		self._cmd._update_output_layer(ns, "centroid")
 		self._cmd.dump_args_option(ns)
@@ -250,14 +256,15 @@ class LineCellCommands(cmd2.CommandSet):
 	sort_parser = cmd2.Cmd2ArgumentParser(
 		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER],
 		description=f"Sort the data items (nodes, lines, cells) on a single layer. Note that this modifies the data in-place.")
-	sort_parser.add_argument("--items", "-i", action='extend', nargs='*', choices=sf2_common.WIDGET_NAMES,
-		default=sf2_common.WIDGET_NAMES,
+	sort_parser.add_argument("--items", "-i", action='extend', nargs='*', choices=sf_common.WIDGET_NAMES,
+		default=sf_common.WIDGET_NAMES,
 		help="Data items to sort, defaults to all")
 	sort_parser.add_argument("--property", "-p", choices='min mid max'.split(), default='mid',
 		help="item property to sort by, minimum/maximum magnitude or midpoint")
 	sort_parser.add_argument("--reverse", "-r", action='store_true',
 		help="Reverse order of sort.")
 	@cmd2.with_argparser(sort_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_sort(self, ns:argparse.Namespace):
 		self._cmd.dump_args_option(ns)
 
@@ -283,6 +290,7 @@ class LineCellCommands(cmd2.CommandSet):
 	index_parser.add_argument("--position", "-p", choices='min mid max'.split(), default='mid',
 		help="text placement, minimum/maximum magnitude or midpoint")
 	@cmd2.with_argparser(index_parser)
+	@utils.add_func_attr("allow-undo")
 	def do_index(self, ns:argparse.Namespace):
 		self._cmd._update_output_layer("outline")
 		if not ns.items:
