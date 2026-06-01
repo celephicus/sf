@@ -1,4 +1,6 @@
 .venv
-*.toml
-*.csv
-*.json
+**/*.svg
+**/*.toml
+**/*.csv
+**/*.json
+**/__pycache__

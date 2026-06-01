@@ -3,7 +3,7 @@ import math
 import layer_set, utils
 
 # This is in a module so that other modules with commands can use it.
-APPNAME = "sf2"
+APPNAME = "sf"
 
 # Very important constants.
 PHI = (math.sqrt(5.0)+1.0)/2.0

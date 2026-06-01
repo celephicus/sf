@@ -4,7 +4,6 @@ from pathlib import Path
 
 import cmd2
 import networkx as nx			# Abstract network operations
-from networkx.algorithms.cycles import chordless_cycles
 
 import utils, base_parser, sf2_common
 

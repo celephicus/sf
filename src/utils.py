@@ -1,26 +1,40 @@
-import re, pprint, math, functools, argparse
+#!/usr/bin/env python3
+
+import sys, re, pprint, math, functools, argparse
 from typing import Callable, Any, Tuple, List
 
 from PIL import ImageColor
 from shapely.geometry import Polygon
 
+'''Validators for use with cmd2 should act like simple types, so that have a value set by being called, then
+cmd2 will give an error message that makes sense.'''
+
 class ArgValidator:
-  """Wrapper for a simple type that can wrap a simple type and validate the resulting conversion. """
-  def __init__(self, t:type, validator:Callable[Any, Any]|None, name=None):
-    self.t, self.validator = t, validator
-    self.name = name or self.t.__name__
-  def __repr__(self) -> str:
-      """Will be printed as the 'argument type' to user on syntax or range error."""
-      return f"{self.name}"
-  def __call__(self, arg: str) -> Any:
-    arg = self.t(arg)
-    if not self.validator(arg):
-      raise ValueError(f"validator error") # Value '{arg}': {self._get_validator_desc()}")
-    return arg
+	"""Wrapper for a simple type that can wrap a simple type and validate the resulting conversion. """
+	def __init__(self, t:type, validator:Callable[Any, Any]|None=None, name=None):
+		self.t, self.validator = t, validator
+		self.name = name or self.t.__name__
+	def __repr__(self) -> str:
+			"""Will be printed as the 'argument type' to user on syntax or range error."""
+			return f"{self.name}"
+	def __call__(self, arg: str) -> Any:
+		try:
+			arg = self.t(arg)
+		except Exception:
+			raise ValueError(f"value '{arg}' cannot convert to '{self.t.__name__}'.")
+		if self.validator and not self.validator(arg):
+			raise ValueError(f"value '{arg}' invalid")
+		return arg
+
+arg_positive_int = ArgValidator(int, lambda x: x>0, "PositiveInt")
+arg_positive_float = ArgValidator(float, lambda x: x>0, "PositiveFloat")
+arg_non_negative_int = ArgValidator(int, lambda x: x>=0, "NonNegativeInt")
+arg_non_negative_float = ArgValidator(float, lambda x: x>=0, "NonNegativeFloat")
 
 class Colour:
 	"""A universal colour type, may be set with css colours or html colours like "#f00".
 	For now we have opaque colours and the false value representing full transparency."""
+	#TODO: get rid of PIL dependancy.
 	def __init__(self, col:str|None):
 		"Colour value as string"
 		if type(col) is type(self):
@@ -45,45 +59,6 @@ class Colour:
 
 	def __str__(self):
 		return self.col or "none"
-
-def exclude_from_undo():
-	"Cmd2 command decorator to set a command to not be recorded in the undo list."
-	def decorator(f):
-		setattr(f, "no_undo", True)
-		return f
-	return decorator
-
-ALIGNMENT_TERMS_H, ALIGNMENT_TERMS_V = 'centre left right'.split(), 'middle top bottom'.split() # Default is first item.
-ALIGNMENT_TERMS = ALIGNMENT_TERMS_H + ALIGNMENT_TERMS_V
-def get_raw_text_alignment_items(a):
-	return [] if a is None else [aa for aa in re.split(r"[^a-z]+", a.lower()) if aa]
-def TextAlignment(a):
-	"""Align may be:  (left, centre, right) combined with (top, middle, bottom) with centre & middle as defaults.
-	Any non-alpha character separates the values."""
-	tt = get_raw_text_alignment_items(a)
-	if [it for it in tt if it not in ALIGNMENT_TERMS]:
-		raise ValueError(f"Unknown alignment spec {a}.")
-	h, v = ALIGNMENT_TERMS_H[0], ALIGNMENT_TERMS_V[0]
-	for it in tt:
-		if it in ALIGNMENT_TERMS_H:
-			h = it
-		elif it in ALIGNMENT_TERMS_V:
-			v = it
-	return '-'.join((h,v))	# Canonical version that can be parsed again.
-def get_text_align_h(a):
-	"Return canonical H text alignment "
-	items = get_raw_text_alignment_items(a)
-	assert len(items) == 2
-	return items[0]
-def get_text_align_v(a):
-	"Return canonical V text alignment "
-	items = get_raw_text_alignment_items(a)
-	assert len(items) == 2
-	return items[1]
-
-def wrap_validator_or_none(validator):
-	"Adds the facility to accept an empty string as None to a validator."
-	return lambda a: None if not a else validator(a)
 
 class Extents:
 	"""Keeps track of extents (bounding) box of a set of points."""
@@ -116,11 +91,6 @@ class Extents:
 	def __repr__(self):
 		return f"Extents: ({','.join(map(str, self.extents[0]))}), ({','.join(map(str, self.extents[1]))})"
 
-arg_positive_int = ArgValidator(int, lambda x: x>0, "PositiveInt")
-arg_positive_float = ArgValidator(float, lambda x: x>0, "PositiveFloat")
-arg_non_negative_int = ArgValidator(int, lambda x: x>=0, "NonNegativeInt")
-arg_non_negative_float = ArgValidator(float, lambda x: x>=0, "NonNegativeFloat")
-
 def arg_percent_or_absolute(a):
 	"must be a positive number or percentage"
 	percent = -1 if a.endswith("%") else 0
@@ -139,6 +109,59 @@ def layer_type(a:str) -> str:
 	if not is_valid_layer_name(a):
 		raise ValueError(f"bad layer name {a}")
 	return a
+
+''' Remember a decorator used as @foo is equivalent to f = foo(f).
+So if the decorator had arguments,
+
+	@decorator_with_args(arg)
+	def foo(*args, **kwargs):
+    pass
+
+translates to
+
+	foo = decorator_with_args(arg)(foo)
+
+So decorator_with_args is a function which accepts a custom argument and which returns the actual decorator (that will be applied to the decorated function).
+'''
+
+def add_func_attr(name, value=True):
+	"Add an attribute to a function, with default value True."
+	def decorator(func):
+			setattr(func, name, value)
+			return func
+	return decorator
+
+class TextAlignment:
+	"""Captures horizontal & vertical  text alignment as one of left, centre, right & one of top, middle, bottom
+	with default being left, middle.
+	Alignment styled as "left-middle" with a hyphen, but any punctuation or space will do as a separator on input.
+	Case in ignored and "center" is begrudgingly allowed as a synonym for "centre".
+	Any number of terms can be supplied with each overriding either the default or the last term for H or V."""
+
+	ALIGNMENT_TERMS_H, ALIGNMENT_TERMS_V = 'left centre right'.split(), 'top middle bottom'.split()
+	DEFAULT = "centre-middle"
+	def __init__(self, align:str):
+		self._set(align or self.DEFAULT)
+	def _set(self, align:str):
+		h, v = self.DEFAULT.split('-')
+		for a_term in re.split(r"[^a-z]+", align.lower()):
+			if a_term:
+				if a_term == 'center':
+					a_term = 'centre'
+				if a_term in self.ALIGNMENT_TERMS_H:
+					h = a_term
+				elif a_term in self.ALIGNMENT_TERMS_V:
+					v = a_term
+				else:
+					raise ValueError(f"Alignment '{align}' invalid.")
+		self.h, self.v = h, v
+	def __str__(self):
+		return f"{self.h}-{self.v}"
+	align_h = property(get=lambda self: self.h, doc="Return horizontal alignment")
+	align_v = property(get=lambda self: self.v, doc="Return vertical alignment")
+
+#
+#
 
 # Type for the nodes, either [x,y] or [x,y,r]
 Node = list[float,float]|list[float,float,float]
@@ -187,3 +210,13 @@ class FormatPrinter(pprint.PrettyPrinter):
 def dump(stuff, leader="", sigfigs=2, width=80):
 	printer = FormatPrinter({float: f"%.{sigfigs}f"}, compact=True, sort_dicts=False, indent=2, width=width)
 	return f"{leader}{printer.pformat(stuff)}"
+
+# Not tested.
+#
+
+def dump_custom_options(ns:argparse.Namespace, leader=None) -> str:
+	"Format all options that are not special cmd2 options that are prefixed 'cmd2...'."
+	if not leader:
+		leader = 'Args'
+	return f'{leader}: {", ".join([f"{k}={v}" for k,v in vars(ns).items() if not k.startswith('cmd2')])}'
+

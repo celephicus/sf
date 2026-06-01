@@ -9,14 +9,14 @@ import cmd2
 from PIL import ImageColor
 #TODO: Sort out colours.
 
-import utils, base_parser, sf2_common, layer_set
+import utils, base_parser, sf_common, layer_set
 import file_commands, cell_commands, node_commands
 
 class SF_App(cmd2.Cmd):
 	"""The app."""
 
 	BANNER = f"""\
-{sf2_common.APPNAME} - a little language for generating patterns inspired by phyllotactic growth.
+{sf_common.APPNAME} - a little language for generating patterns inspired by phyllotactic growth.
 Type "?" for help.
 """
 
@@ -24,7 +24,7 @@ Type "?" for help.
 
 	def __init__(self, sf2_args):
 		super().__init__(
-			persistent_history_file=f"~/{sf2_common.APPNAME}_history",
+			persistent_history_file=f"~/{sf_common.APPNAME}_history",
 			startup_script=sf2_args.rc_file,
 			intro=self.BANNER,
 			suggest_similar_command=True,
@@ -32,9 +32,9 @@ Type "?" for help.
 			allow_cli_args = False
 		)
 
-		self.dd = layer_set.LayerSet(layer_set.Layer(None, sf2_common.ATTRIBUTES, sf2_common.WIDGETS))		# User data store.
+		self.dd = layer_set.LayerSet(layer_set.Layer(None, sf_common.ATTRIBUTES, sf_common.WIDGETS))		# User data store.
 
-		self.prompt = f"{sf2_common.APPNAME}> "       # Show this as the prompt when asking for input.
+		self.prompt = f"{sf_common.APPNAME}> "       # Show this as the prompt when asking for input.
 		self.continuation_prompt = '... '             # Used as prompt for multiline commands after the first line.
 		self.default_category = 'Built-in Commands'   # Set the default category name.
 		self.onecmd_plus_hooks('alias create q quit') # Handy shortcut.
@@ -48,7 +48,7 @@ Type "?" for help.
 		self.add_settable(cmd2.Settable('query_overwrite', bool, 'query before overwriting existing data on a layer', self))
 		self.sigfigs = 2
 		self.add_settable(cmd2.Settable('sigfigs', int, 'number of digits after d.p for dump', self))
-		self.filename = Path(f"{sf2_common.APPNAME}.svg")
+		self.filename = Path(f"{sf_common.APPNAME}.svg")
 		self.add_settable(cmd2.Settable('filename', Path, 'default filename for plot', self))
 
 		# Builtin settings.
@@ -127,11 +127,9 @@ Type "?" for help.
 
 	#TODO: do this properly with a decorator.
 	def dump_args_option(self, ns:argparse.Namespace, leader=None) -> None:
-		"Helper to dump args and not run command function depending on settings."
+		"Helper to dump args."
 		if self.debug:
-			if not leader:
-				leader = 'Args'
-			self.pwarning(f'{leader}: {", ".join([f"{k}={v}" for k,v in vars(ns).items() if not k.startswith('cmd2')])}')
+			self.pwarning(utils.dump_custom_options(ns, leader))
 
 	def add_layer_attributes(self, layer_name:str, ns:argparse.Namespace, exclude:str='') -> None:
 		"""Set any layer attributes to layer data."""
@@ -277,7 +275,7 @@ Type "?" for help.
 		help='Strip explicit diameter from nodes items.')
 	layer_parser_eg.add_argument("--delete", "-d", action='store_true',
 		help='Delete entire layer.')
-	layer_parser_eg.add_argument("--remove", "-r", choices=sf2_common.ATTRIBUTE_NAMES+sf2_common.WIDGET_NAMES,
+	layer_parser_eg.add_argument("--remove", "-r", choices=sf_common.ATTRIBUTE_NAMES+sf_common.WIDGET_NAMES,
 		action='extend', nargs='+',
 		help="Remove attributes or data. If --count=<n> if given reduce items to first n, if negative last n.")
 
@@ -296,7 +294,7 @@ Type "?" for help.
 			if ns.count or ns.reverse:
 				self.warn_if_verbose("count/reverse option ignored.")
 		def warn_attribute():
-			if any([getattr(ns, attr, None) for attr in sf2_common.ATTRIBUTE_NAMES]):
+			if any([getattr(ns, attr, None) for attr in sf_common.ATTRIBUTE_NAMES]):
 				self.warn_if_verbose("Attribute options ignored.")
 
 		if ns.delete:     # Delete entire layer.
@@ -396,11 +394,11 @@ if __name__ == '__main__':
 	parser.add_argument('--debug', '-d', action='store_true', help='enable debug mode')
 	parser.add_argument("script", type=str, nargs='?', help="Run user script(s) on startup.")
 	parser.add_argument("--no-rc", "-n", action="store_true",
-		help="Do not run f{sf2_common.APPNAME}")
+		help="Do not run f{sf_common.APPNAME}")
 	sf2_args = parser.parse_args()
 
 	# The rc file for sf2 is read from ~/.sf2_rc or .sf2_rc
-	SF2_RC = f"{sf2_common.APPNAME}_rc"		# File to run at startup
+	SF2_RC = f"{sf_common.APPNAME}_rc"		# File to run at startup
 	SF2_RC_PATHS = SF2_RC, os.path.expanduser("~/"+SF2_RC)
 	sf2_args.rc_file = None
 	if not sf2_args.no_rc:

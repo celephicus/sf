@@ -18,9 +18,11 @@ class _NOTSET:
 	def __bool__(self):
 		return False
 	def __repr__(self):
-		return self.__class__.__name__
-NOTSET = _NOTSET()
+		return "NOTSET"
 
+# There shalll be one and only one!
+NOTSET = _NOTSET()
+del _NOTSET
 # We need a lot of parsers. So we make a few base parsers and inherit from them as needed.
 
 # Base parser for all utility commands. it just takes a number of layers as positional arguments.
