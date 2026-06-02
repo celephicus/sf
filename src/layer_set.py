@@ -391,7 +391,7 @@ class LayerSet:
 		if type(layer_names) is str:
 			layer_names = layer_names.split()
 		if not layer_names:
-			layer_names = self.ALL_LAYERS
+			layer_names = self.layer_names()
 		# print(layer_names)
 		dumps = [f"LayerSet:"]
 		dumps.append(f"Default attributes: {self.get(self.PROTO_LAYER_NAME).dump_attributes(attr_from_parent=False)}")
@@ -402,13 +402,14 @@ class LayerSet:
 	def __repr__(self):
 		return self.dump()
 
-	ALL_LAYERS = property(fget=lambda self: tuple([n for n in self.layers.keys() if n != self.PROTO_LAYER_NAME]),
-		doc="Get a tuple of all layer names in the set.")
+	def layer_names(self):
+		"Get a tuple of all layer names in the set."
+		return tuple([n for n in self.layers.keys() if n != self.PROTO_LAYER_NAME])
 
 	def plot_svg(self, filename:str, layer_names:list[str]=None, use_dominant_baseline=False) -> None:
 		if layer_names is None:
-			layer_names = self.ALL_LAYERS
-		assert set(layer_names) <= set(self.ALL_LAYERS)
+			layer_names = self.layer_names()
+		assert set(layer_names) <= set(self.layer_names())
 
 		dwg = svgwrite.Drawing()
 		background_colour = self.get(self.PROTO_LAYER_NAME).get_attr("background")		# Retrieve from factory layer.

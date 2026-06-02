@@ -7,6 +7,18 @@ import pytest
 
 import utils
 
+@pytest.mark.parametrize("spec, exp_y, exp_n", (
+	("", "", ""),
+	("abc", "abc", ""),
+	("ab", "", "ab"),
+	("ab abc", "abc", "ab"),
+	("ab* *x", "abc Abc1 abc2", ""),
+	("Ab* *X foo", "abc Abc1 abc2", "foo"),
+))
+def test_expand_items(spec, exp_y, exp_n):
+	ITEMS = tuple('abc Abc1 abc2 z zz zzz'.split())
+	assert utils.expand_items(ITEMS, spec.split()) == (exp_y.split(), exp_n.split())
+
 # Arg validators for argparse
 #
 
@@ -104,29 +116,6 @@ def test_TextAlignmentBad(align):
 	with pytest.raises(ValueError) as exc:
 		utils.TextAlignment(align)
 
-'''
-def test_TextAlignment(x):
-	assert utils.TextAlignment("") == "centre-middle"
-	assert utils.TextAlignment("Centre MIDDLE") == "centre-middle"
-	assert utils.TextAlignment(" TOP - leFt") == "left-top"
-	assert utils.TextAlignment(" bottom - right") == "right-bottom"
-
-def test_TextAlignment_bad():
-	with pytest.raises(ValueError):
-		utils.TextAlignment("Foo")
-
-def test_get_text_align():
-	assert utils.get_text_align_h('a b') == 'a'
-	assert utils.get_text_align_h('a b') == 'a'
-	assert utils.get_text_align_v('a b') == 'b'
-	assert utils.get_text_align_h('a -b') == 'a'
-
-def test_get_text_align_bad():
-	with pytest.raises(AssertionError):
-		utils.get_text_align_h(' a ')
-	with pytest.raises(AssertionError):
-		utils.get_text_align_v('  ')
-'''
 # Rectangular extents class
 #
 

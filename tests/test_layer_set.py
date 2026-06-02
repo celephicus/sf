@@ -341,7 +341,7 @@ def test_layer_foreach_widget_item(funcdict, exp_items, exp_extents):
 
 def test_layerset_init(t_layer):
 	t = LayerSet(t_layer)
-	assert t.ALL_LAYERS == ()
+	assert t.layer_names() == ()
 	assert t.ATTRIBUTE_NAMES == ("attr1", "attr2")
 	assert t.WIDGET_NAMES == ("nodes",)
 
@@ -349,7 +349,7 @@ def test_layerset_new(t_layer):
 	t = LayerSet(t_layer)
 	l = t.get('foo')
 	assert l.name == 'foo'
-	assert t.ALL_LAYERS == ('foo',)
+	assert t.layer_names() == ('foo',)
 	assert t.get('foo') is l
 	assert l.get_attr("attr1") == 1						# From parent.
 	l.set_attr("attr1", 123)
@@ -360,9 +360,9 @@ def test_layerset_new(t_layer):
 def test_layerset_delete(t_layer):
 	t = LayerSet(t_layer)
 	t.get('foo')
-	assert t.ALL_LAYERS == ('foo',)
+	assert t.layer_names() == ('foo',)
 	t.delete_layer('foo')
-	assert t.ALL_LAYERS == ()
+	assert t.layer_names() == ()
 	with pytest.raises(AssertionError):
 		t.delete_layer('foo')
 

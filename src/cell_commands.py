@@ -14,12 +14,13 @@ import geopandas as gpd
 from shapely.ops import unary_union
 
 @cmd2.with_default_category('Line & Cell Commands')
-class LineCellCommands(cmd2.CommandSet):
+class LineCellCommands(cmd2.CommandSet, base_parser.Parsers):
 	def __init__(self):
 		super().__init__()
 
 	# Parastichy command -
-	parastichy_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER],
+	parastichy_parser = cmd2.Cmd2ArgumentParser(
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER],
 		description="Generate parastichy spirals from a set of nodes.")
 	parastichy_parser.add_argument("--prefix", "-P", type=utils.layer_type, default="P",
 		help="Prefix used for each layer containing the corresponding parastichy spirals.")
@@ -69,7 +70,8 @@ class LineCellCommands(cmd2.CommandSet):
 	# Voronoi cell generator.
 	#
 	voronoi_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER, base_parser.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER,
+			base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
 		description="Generate Voronoi regions from a set of nodes.")
 
 	@cmd2.with_argparser(voronoi_parser)
@@ -90,7 +92,8 @@ class LineCellCommands(cmd2.CommandSet):
 	# Mesh command -- generate cells from set of intersecting lines,
 	#
 	mesh_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.MULTI_INPUT_LAYERS_PARSER, base_parser.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.MULTI_INPUT_LAYERS_PARSER,
+		base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
 		description="Generate cells from mesh of lines (typically parastichies) on any number of layers.")
 	mesh_parser.add_argument("--n-sides", "-n", type=int, default=4,
 		help="Number of sides for cells, default is 4, set to < 3 for all.")
@@ -186,7 +189,7 @@ class LineCellCommands(cmd2.CommandSet):
 	_CELL_FILTER_CHOICES = {it.__doc__.split(":")[0].lower(): it for it in _CELL_FILTERS}
 
 	cellproc_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER, base_parser.OUTPUT_LAYER_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER, base_parser.Parsers.OUTPUT_LAYER_PARSER],
 		description=f"""Process the cells on a single layer.
 {_CELL_FILTERS_HELPS}""")
 	cellproc_parser.add_argument("--filter", "-f", choices=list(_CELL_FILTER_CHOICES.keys()), required=True, # Required option is bad style!
@@ -214,7 +217,8 @@ class LineCellCommands(cmd2.CommandSet):
 	# Outline command - generates outline for set of cells.
 	#
 	outline_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER, base_parser.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER,
+			base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
 		description=f"Generate outline cell for all cells on a single layer.")
 	outline_parser.add_argument("--border", "-b", type=float, default='0.0',
 	 help="border from outer cells to border, can be negative")
@@ -237,7 +241,7 @@ class LineCellCommands(cmd2.CommandSet):
 	# Centroid command -- add nodes based on centroid of cell.
 	#
 	centroid_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER, base_parser.OUTPUT_LAYER_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER, base_parser.Parsers.OUTPUT_LAYER_PARSER],
 		description=f"Generate centroids for the cells on a single layer.")
 
 	@cmd2.with_argparser(centroid_parser)
@@ -254,7 +258,7 @@ class LineCellCommands(cmd2.CommandSet):
 
 	# Sort command, sorts data items by coords of midpoint.
 	sort_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER],
 		description=f"Sort the data items (nodes, lines, cells) on a single layer. Note that this modifies the data in-place.")
 	sort_parser.add_argument("--items", "-i", action='extend', nargs='*', choices=sf_common.WIDGET_NAMES,
 		default=sf_common.WIDGET_NAMES,
@@ -283,7 +287,8 @@ class LineCellCommands(cmd2.CommandSet):
 		self._cmd.add_layer_attributes(ns.layer, ns)
 '''
 	# Index command, places index number for data items.
-	index_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.GENERIC_ATTRIBUTES, utils.SINGLE_INPUT_LAYER_PARSER, utils.OUTPUT_LAYER_PARSER],
+	index_parser = cmd2.Cmd2ArgumentParser(
+	parents=[base_parser.GENERIC_ATTRIBUTES, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER, base_parser.Parsers.OUTPUT_LAYER_PARSER],
 		description=f"Place text with the index for data items (nodes, lines, cells) on a single layer.")
 	index_parser.add_argument("--items", "-i", action='extend', nargs='*',
 		help="Data items to process, defaults to all")

@@ -13,7 +13,7 @@ import utils, base_parser, sf_common
 from layer_set import LayerSet
 
 @cmd2.with_default_category('Node Commands')
-class NodeCommands(cmd2.CommandSet):
+class NodeCommands(cmd2.CommandSet, base_parser.Parsers):
 	"""Node Generators -- generate clouds of nodes as spirals, rings, etc. Generates a new layer if not existing."""
 	def __init__(self):
 		super().__init__()
@@ -25,7 +25,7 @@ class NodeCommands(cmd2.CommandSet):
 
 	# Command circle: add single circles. Intended for reference circles
 	#
-	node_circle_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.OUTPUT_LAYER_PARSER, base_parser.GENERIC_ATTRIBUTES_PARSER],
+	node_circle_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.GENERIC_ATTRIBUTES_PARSER],
 		description="Add a single node, always appends to existing nodes.")
 
 	def arg_circle_type(a):
@@ -53,7 +53,7 @@ class NodeCommands(cmd2.CommandSet):
 	# Command ring: makes a ring of equally spaced nodes.
 	#
 	NODE_RING_DEFAULT_OFFSET = 1.50           # Seems to work well for variety of node counts.
-	node_ring_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.OUTPUT_LAYER_PARSER, base_parser.GENERIC_ATTRIBUTES_PARSER],
+	node_ring_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.GENERIC_ATTRIBUTES_PARSER],
 		description="Add a ring of equally spaced nodes, always appends to existing nodes.")
 	node_ring_parser.add_argument("--count", "-n", type=utils.arg_positive_int, default=100, # And a count.
 		help="number of nodes")
@@ -90,7 +90,7 @@ class NodeCommands(cmd2.CommandSet):
 
 	# Spiral generator parser, used by all spiral subcommands.
 	#
-	spiral_generator_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.OUTPUT_LAYER_PARSER, base_parser.GENERIC_ATTRIBUTES_PARSER],
+	spiral_generator_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.GENERIC_ATTRIBUTES_PARSER],
 		add_help=False)
 	spiral_generator_parser.add_argument("--count", "-n", type=utils.arg_positive_int, default=100, # And a count.
 		help="number of nodes")
@@ -164,7 +164,7 @@ class NodeCommands(cmd2.CommandSet):
 	# Command wiring -- generate minimal length path through all nodes.
 	#
 	wiring_parser = cmd2.Cmd2ArgumentParser(
-		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.SINGLE_INPUT_LAYER_PARSER, base_parser.OUTPUT_LAYER_PARSER],
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER, base_parser.Parsers.OUTPUT_LAYER_PARSER],
 		description="""Generate a single line that goes though all nodes in minimum distance. Aka the
 		"Travelling Salesman Problem". It is not perfect, and might generate a few crossings.""")
 	wiring_parser.add_argument("--start", "-s", type=utils.arg_percent_or_absolute, default=0.0,

@@ -10,7 +10,7 @@ import utils, base_parser, sf_common
 from layer_set import LayerSet
 
 @cmd2.with_default_category('File Commands')
-class FileCommands(cmd2.CommandSet):
+class FileCommands(cmd2.CommandSet, base_parser.Parsers):
 	def __init__(self):
 		super().__init__()
 
@@ -34,7 +34,7 @@ class FileCommands(cmd2.CommandSet):
 
 	# Export command, one layer or all.
 	EXPORT_FORMATS = "toml csv json".split()
-	import_export_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.MULTI_INPUT_LAYERS_PARSER],
+	import_export_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.Parsers.MULTI_INPUT_LAYERS_PARSER],
 		description="Export a set of layers.")
 	import_export_parser.add_argument("--format", "-F", choices=EXPORT_FORMATS,
 		help='output format')
@@ -108,7 +108,7 @@ class FileCommands(cmd2.CommandSet):
 
 	# Plot command.
 	#
-	plot_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.MULTI_INPUT_LAYERS_PARSER],
+	plot_parser = cmd2.Cmd2ArgumentParser(parents=[base_parser.Parsers.MULTI_INPUT_LAYERS_PARSER],
 		description="Render a set of layers to a vector graphic file.")
 	plot_parser.add_argument("--format", "-F", choices=LayerSet.PLOT_FORMATS,
 		help='output format')

@@ -23,12 +23,27 @@ class _NOTSET:
 # There shalll be one and only one!
 NOTSET = _NOTSET()
 del _NOTSET
-# We need a lot of parsers. So we make a few base parsers and inherit from them as needed.
 
-# Base parser for all utility commands. it just takes a number of layers as positional arguments.
-MULTI_INPUT_LAYERS_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
-MULTI_INPUT_LAYERS_PARSER.add_argument("layers", type=str, nargs='*',
-	help="Multiple layers with data to process, or blank for all.")
+# We need a lot of parsers. So we make a few base parsers and inherit from them as needed.
+class Parsers:
+	def __init__(self):
+		super().__init__()
+
+	# Needed for layer name completion.
+	def layer_choices(self): return self.dd.layer_names()
+
+	# Base parser for all utility commands. it just takes a number of layers as positional arguments.
+	MULTI_INPUT_LAYERS_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
+	MULTI_INPUT_LAYERS_PARSER.add_argument("layers", type=str, nargs='*', choices_provider=layer_choices,
+		help="Multiple layers with data to process, or blank for all.")
+
+	OUTPUT_LAYER_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
+	OUTPUT_LAYER_PARSER.add_argument("output_layer", type=utils.layer_type, nargs='?', choices_provider=layer_choices,
+		help=f"Destination layer for output, if not given then a new layer named after the command will be created.")
+
+	SINGLE_INPUT_LAYER_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
+	SINGLE_INPUT_LAYER_PARSER.add_argument("layer", type=utils.layer_type, choices_provider=layer_choices,
+		help="Layer containing data to process.")
 
 # Base parser with generic layer attributes.
 GENERIC_ATTRIBUTES_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
@@ -46,14 +61,6 @@ GENERIC_ATTRIBUTES_PARSER.add_argument("--align", '-A', type=utils.TextAlignment
 	help="Set text alignment attribute as one of {left,centre,right}-{top,middle,bottom}.")
 GENERIC_ATTRIBUTES_PARSER.add_argument("--diameter", "-D", type=utils.arg_non_negative_float, nargs='?', default=NOTSET,
 	help="diameter to draw node locations as circles (not scaled)")
-
-OUTPUT_LAYER_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
-OUTPUT_LAYER_PARSER.add_argument("output_layer", type=utils.layer_type, nargs='?',
-	help=f"Destination layer for output, if not given then a new layer named after the command will be created.")
-
-SINGLE_INPUT_LAYER_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
-SINGLE_INPUT_LAYER_PARSER.add_argument("layer", type=utils.layer_type,
-	help="Layer containing data to process.")
 
 APPEND_OPTION_PARSER = cmd2.Cmd2ArgumentParser(add_help=False)
 APPEND_OPTION_PARSER.add_argument("--append", "-a", action='store_true',
