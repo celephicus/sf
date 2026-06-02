@@ -26,6 +26,6 @@ WIDGETS = (
 	layer_set.NodesWidget(),
 	layer_set.LinesWidget(),
 	layer_set.CellsWidget(),
-	# layer_set.TextWidget(),
+	layer_set.TextWidget(),
 )
 WIDGET_NAMES = tuple([a.NAME for a in WIDGETS])

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import os, sys
+sys.path.append(os.path.abspath('../src'))
+
 import pytest
 
 from layer_set import *
@@ -70,6 +73,19 @@ def test_v_cells():
 def test_v_cells_bad(x):
 	with pytest.raises(ValueError):
 		validate_cells(x)
+
+def test_v_text():
+	assert validate_text([]) == []
+	assert validate_text([[1.0, 2.0, "foo"]]) == [[1.0, 2.0, "foo"]]
+
+@pytest.mark.parametrize("w", [
+	'a',
+	[[1.0,2.0]],
+	[[1.0,2.0,3.0]],
+])
+def test_v_text_bad(w):
+	with pytest.raises(ValueError):
+		validate_text(w)
 
 # Widget: Nodes
 def test_nodes_widget():

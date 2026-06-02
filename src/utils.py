@@ -2,10 +2,22 @@
 
 import sys, re, pprint, math, functools, argparse, fnmatch
 from typing import Callable, Any, Tuple, List
+from functools import lru_cache
 
 from PIL import ImageColor
 from shapely.geometry import Polygon
 
+
+@lru_cache(maxsize=None)
+def fibonacci(n: int, s: int=0) -> int:
+    """Returns the Fibonacci number at a given index (0-indexed). Set s=2 for Lucas numbers."""
+    if n < 0:
+        raise ValueError("Fibonacci index must be a non-negative integer.")
+    if n == 0:
+        return s
+    if n == 1:
+        return 1
+    return fibonacci(n - 1, s) + fibonacci(n - 2, s)
 
 def expand_items(items:tuple[str], spec:list[str]) -> tuple[list[str], list[str]]:
 	"""Given a tuple of items, take a spec consisting of strings, each may either be an item in the items or a regex
@@ -161,7 +173,7 @@ class TextAlignment:
 		self._set(align or self.DEFAULT)
 	def _set(self, align:str):
 		h, v = self.DEFAULT.split('-')
-		for a_term in re.split(r"[^a-z]+", align.lower()):
+		for a_term in re.split(r"[^a-z]+", str(align).lower()):
 			if a_term:
 				if a_term == 'center':
 					a_term = 'centre'

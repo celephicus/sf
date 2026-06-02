@@ -7,6 +7,14 @@ import pytest
 
 import utils
 
+def test_fibonacci():
+	assert [utils.fibonacci(x) for x in range(10)] ==    [0, 1, 1, 2, 3, 5,  8,  13, 21, 34]
+	assert [utils.fibonacci(x, 3) for x in range(10)] == [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
+	with pytest.raises(ValueError) as exc:
+		utils.fibonacci(-1)
+	with pytest.raises(ValueError) as exc:
+		utils.fibonacci(-1, 2)
+
 @pytest.mark.parametrize("spec, exp_y, exp_n", (
 	("", "", ""),
 	("abc", "abc", ""),

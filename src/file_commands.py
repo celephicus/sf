@@ -40,7 +40,7 @@ class FileCommands(cmd2.CommandSet, base_parser.Parsers):
 		help='output format')
 	import_export_parser.add_argument("--file", "-f", type=Path, default=sf_common.APPNAME,
 		help='output filename')
-	import_export_parser.add_argument("--data", "-D", choices=sf_common.WIDGET_NAMES, nargs='*',
+	import_export_parser.add_argument("--data", "-d", choices=sf_common.WIDGET_NAMES, nargs='*',
 		help='data items to export')
 
 	@cmd2.with_argparser(import_export_parser)

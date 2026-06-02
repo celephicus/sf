@@ -285,28 +285,4 @@ class LineCellCommands(cmd2.CommandSet, base_parser.Parsers):
 			self._cmd.update_widget_data(ns.layer, d_key, [p[1] for p in pp])
 
 		self._cmd.add_layer_attributes(ns.layer, ns)
-'''
-	# Index command, places index number for data items.
-	index_parser = cmd2.Cmd2ArgumentParser(
-	parents=[base_parser.GENERIC_ATTRIBUTES, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER, base_parser.Parsers.OUTPUT_LAYER_PARSER],
-		description=f"Place text with the index for data items (nodes, lines, cells) on a single layer.")
-	index_parser.add_argument("--items", "-i", action='extend', nargs='*',
-		help="Data items to process, defaults to all")
-	index_parser.add_argument("--position", "-p", choices='min mid max'.split(), default='mid',
-		help="text placement, minimum/maximum magnitude or midpoint")
-	@cmd2.with_argparser(index_parser)
-	@utils.add_func_attr("allow-undo")
-	def do_index(self, ns:argparse.Namespace):
-		self._cmd._update_output_layer("outline")
-		if not ns.items:
-			ns.items = LayerSet.DATA_KEYS
-		self._cmd.dump_args_option(ns)
 
-		ppds = [(d_key, self._cmd.dd.get_data_item_coords(ns.layer, d_key, pos=ns.position)) for d_key in ns.items]
-		for d_key, ppd in ppds:																		# Avoid mutating layer we are iterating over.
-			print("PPD", d_key, ppd)
-			for i, p in enumerate(ppd, 1):
-				self._cmd.add_data_to_layer(ns.output_layer, "text", [p[0], p[1], f"{i}"], append=True)
-
-		self._cmd.add_layer_attributes(ns.output_layer, ns)
-	'''

@@ -9,7 +9,7 @@ import cmd2
 from PIL import ImageColor
 
 import utils, base_parser, sf_common, layer_set
-import file_commands, cell_commands, node_commands, utility_commands
+import file_commands, cell_commands, node_commands, utility_commands, text_commands
 
 class SF_App(cmd2.Cmd):
 	"""The app."""
@@ -136,10 +136,10 @@ Type "?" for help.
 		for attr in [x for x in layer.ATTRIBUTE_NAMES if x not in exclude.split()]:
 			val = getattr(ns, attr, base_parser.NOTSET)
 			if val is not base_parser.NOTSET:
-				try:
+				#try:
 					layer.set_attr(attr, val)
-				except Exception:
-					self.perror(f"Error setting attribute {attr} to {val} for layer {layer_name}.")
+				#except Exception as exc:
+				#	self.perror(f"Error setting attribute {attr} to {val} for layer {layer_name}: {exc}.")
 
 	def debug_dump(self, leader, stuff):
 		"Generic dumper for debug info"

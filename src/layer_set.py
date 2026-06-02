@@ -78,6 +78,15 @@ class CellsModel(BaseModel):
 def validate_cells(d):
 	return CellsModel(items=d).items
 
+def validate_text(w):
+	try:
+		assert type(w) is list
+		for x,y,t in w:
+			assert type(x) is float and type(y) is float and type(t) is str
+	except Exception:
+		raise ValueError()
+	return w
+
 class WidgetBase:
 	"""Base class for a graphical widget.
 	Widgets hold a set of *items*, each item is a graphical entity like point, line, polygon, text, etc.
@@ -192,6 +201,20 @@ class NodesWidget(WidgetBase):
 
 	def foreach_coord(self, func:Callable[List[float], None], env=None):
 		self._foreach_coord_in_list(self.items, func, env)
+
+class TextWidget(NodesWidget):
+	NAME = "text"
+	def __init__(self):
+		super().__init__()
+
+	def _validate_data(self, data):
+		"List or tuple of 2 floats and a string."
+		return validate_text(data)
+
+	def _get_item_extents(self, item):
+		return (0.0, 0.0), (0.0, 0.0)
+
+	#TODO: Override get_items_canonical
 
 class NodeSetWidgetBase(WidgetBase):
 	def __init__(self):
@@ -451,7 +474,7 @@ class LayerSet:
 				env.add(dwg.polygon(points=ln))
 			def drawfunc_text(txt, env):
 				env.add(dwg.text(txt[2], insert=(txt[0],txt[1]-v_align_offset)))
-			DRAWFUNCS = {"nodes": drawfunc_node, "lines": drawfunc_line, "cells": drawfunc_cell} # , "text": drawfunc_text}
+			DRAWFUNCS = {"nodes": drawfunc_node, "lines": drawfunc_line, "cells": drawfunc_cell, "text": drawfunc_text}
 
 			layer.foreach_widget_item(DRAWFUNCS, g_layer)
 			layer.update_extents_widgets(extents, list(DRAWFUNCS.keys()))
