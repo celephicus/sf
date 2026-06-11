@@ -28,33 +28,26 @@ class LineCellCommands(cmd2.CommandSet, base_parser.Parsers):
 	def arg_validator_parastichy(a):
 		"Either a positive number or F<n> where n is the n'th Fibonacci number 0,1,1,2,3... numbered from zero."
 		try:
-			if a and a[0].upper() == 'F':
-				nfib = int(a[1:])
-				if nfib < 1:
-					raise ValueError
-				F = [0,1]
-				for i in range(nfib-1):
-					F.append(F[-2]+F[-1])
-				v =  F[nfib]
+			if a[0].upper() == 'F':
+				v = utils.fibonacci(int(a[1:]))
+			if a[0].upper() == 'L':
+				v = utils.fibonacci(int(a[1:], 2))
 			else:
 				v = int(a)
-				if v < 1:
-					raise ValueError
+			if v < 1:
+				raise ValueError
 			return v
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"Parasticy value '{a}' illegal.")
 	parastichy_parser.add_argument("--parastichy", "-p", type=arg_validator_parastichy, nargs='+', action='extend',
-		help='parastichy number, either a positive integer of the zero based index of a Fibonacci number.')
+		help='Parastichy number, either a positive integer or the index of a Fibonacci/Lucas number if prefixed with F/L.')
 
 	@cmd2.with_argparser(parastichy_parser)
 	@utils.add_func_attr("allow-undo")
 	def do_parastichy(self, ns:argparse.Namespace):
 		ns.parastichy = list(set(ns.parastichy))			# Get rid of duplicates.
-		nodes = self._cmd.dd.get(ns.layer).widget("nodes").items
 		self._cmd.dump_args_option(ns)
-		if not nodes:
-			self._cmd.warn_if_verbose(f"No nodes on layer {ns.layer}.")
-		else:
+		if nodes := self._cmd.get_data(ns, "nodes"):
 			for ps_num in ns.parastichy:
 				self._cmd.pdebug(f"Parastichy number = {ps_num}.")
 				nodes_visited = set()
@@ -64,8 +57,25 @@ class LineCellCommands(cmd2.CommandSet, base_parser.Parsers):
 						if len(para_spiral) > 1:
 							nodes_visited.update(para_spiral)
 							layer = f"{ns.prefix}{ps_num}"
-							self._cmd.dd.get(layer).widget("lines").set([[nodes[x][0:2] for x in para_spiral]], append=True)
+							self._cmd.update_widget_data(layer, "lines", [[nodes[x][0:2] for x in para_spiral]], append=True)
 							self._cmd.add_layer_attributes(layer, ns)
+
+	# Line command - join all nodes with a line.
+	#
+	line_parser = cmd2.Cmd2ArgumentParser(
+		parents=[base_parser.GENERIC_ATTRIBUTES_PARSER, base_parser.Parsers.SINGLE_INPUT_LAYER_PARSER,
+			base_parser.Parsers.OUTPUT_LAYER_PARSER, base_parser.APPEND_OPTION_PARSER],
+		description="Draw a polyline connecting all nodes in sequence.")
+
+	@cmd2.with_argparser(line_parser)
+	@utils.add_func_attr("allow-undo")
+	def do_line(self, ns:argparse.Namespace):
+		self._cmd._update_output_layer(ns, "lines")
+		self._cmd.dump_args_option(ns)
+		if nodes := self._cmd.get_data(ns, "nodes"):
+			self._cmd.update_widget_data(ns.output_layer, "lines", [[p[:2] for p in nodes]], append=ns.append)
+			self._cmd.add_layer_attributes(ns.output_layer, ns)
+
 
 	# Voronoi cell generator.
 	#
